@@ -1,0 +1,23 @@
+{% block content %}
+  <h2>Assign questions to research: "{{ research.name }}"</h2>
+    {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% for form in formset %}
+      <fieldset>
+        <legend>Question {{ forloop.counter }}</legend>
+        {{ form.as_p }}
+      </fieldset>
+    {% endfor %}
+    <button type="submit">Finish</button>
+  </form>
+    <a href="{% url 'add-participants' %}"><button type="button">← Back to participants</button></a>
+    <a href="{% url 'cancel-research' %}">Cancel</a>
+{% endblock %}

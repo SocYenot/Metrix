@@ -1,0 +1,32 @@
+{% block content %}
+  <h1>Research</h1>
+
+  <a href="{% url 'add-research' %}" class="btn btn-primary">Create New Research</a>
+
+  {% if page_obj %}
+    <ul class="research-list">
+      {% for research in page_obj %}
+        <li>
+          <strong>{{ research.name }}</strong> ({{ research.created_at|date:"Y-m-d" }})
+          <br>
+          Participants: {{ research.person_count }}, Questions: {{ research.question_count }}
+          <br>
+          <a href="{% url 'research-detail' research.research_id %}">View</a> |
+          <a href="{% url 'delete-research' research.research_id %}">Delete</a>
+        </li>
+      {% empty %}
+        <li>No researches found.</li>
+      {% endfor %}
+    </ul>
+
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

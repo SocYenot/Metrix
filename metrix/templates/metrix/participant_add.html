@@ -1,0 +1,15 @@
+{% block content %}
+  <h2>Add {{ research.person_count }} participant{{ research.person_count|pluralize }} for: "{{ research.name }}"</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% for form in formset %}
+      <fieldset>
+        <legend>Participant {{ forloop.counter }}</legend>
+        {{ form.as_p }}
+      </fieldset>
+    {% endfor %}
+    <button type="submit">Next: Assign questions</button>
+    <a href="{% url 'cancel-research' %}">Cancel</a>
+  </form>
+{% endblock %}

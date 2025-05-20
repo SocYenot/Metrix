@@ -1,0 +1,26 @@
+{% block content %}
+  <h2>Research: {{ research.name }}</h2>
+  <p><strong>Created by:</strong> {{ research.owner }}</p>
+  <p><strong>People required:</strong> {{ research.person_count }}</p>
+  <p><strong>Created:</strong> {{ research.created_at }}</p>
+  <p><strong>Last updated:</strong> {{ research.updated_at }}</p>
+
+  <h3>Participants</h3>
+  <ul>
+    {% for p in participants %}
+      <li>{{ p.name }} – {{ p.age }} years old – {{ p.gender }}<br><small>{{ p.description }}</small></li>
+    {% empty %}
+      <li>No participants.</li>
+    {% endfor %}
+  </ul>
+
+  <h3>Questions</h3>
+  <ul>
+    {% for q in questions %}
+      <li>{{ q.question.text }} <strong>(Min choices: {{ q.choice_count }})</strong></li>
+    {% empty %}
+      <li>No questions assigned.</li>
+    {% endfor %}
+  </ul>
+    <a href="{% url 'research' %}"><button type="button">Back to main page</button></a>
+{% endblock %}

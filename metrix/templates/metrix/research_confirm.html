@@ -1,0 +1,30 @@
+{% block content %}
+  <h2>Confirm your research</h2>
+
+  <h3>Research details</h3>
+  <p>Name: {{ research.name }}</p>
+  <p>Persons: {{ research.person_count }}</p>
+  <p>Questions: {{ research.question_count }}</p>
+
+  <h3>Participants</h3>
+  <ul>
+  {% for p in participants %}
+    <li>{{ p.name }}, age {{ p.age }}, gender {{ p.gender }}</li>
+  {% endfor %}
+  </ul>
+
+  <h3>Questions:</h3>
+  <ul>
+  {% for q in questions %}
+    <li>{{ q.question_text }} — Min. choices: {{ q.choice_count }}</li>
+  {% endfor %}
+  </ul>
+
+
+  <form method="post">{% csrf_token %}
+    <button type="submit">Confirm and save</button>
+  </form>
+
+  <a href="{% url 'add-research-questions' %}"><button type="button">← Back to questions</button></a>
+    <a href="{% url 'cancel-research' %}">Cancel</a>
+{% endblock %}

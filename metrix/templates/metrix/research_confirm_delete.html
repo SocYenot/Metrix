@@ -1,0 +1,9 @@
+{% block content %}
+  <h2>Confirm Delete Research</h2>
+  <p>Are you sure you want to delete "{{ object.name }}"?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+    <a href="{% url 'research-detail' research_id=object.research_id %}">Cancel</a>
+  </form>
+{% endblock %}

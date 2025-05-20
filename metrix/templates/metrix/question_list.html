@@ -1,0 +1,18 @@
+<html>
+<head>
+    <title>Question list</title>
+</head>
+<body>
+    <h1>Question list</h1>
+    <ul>
+        {% for question in questions %}
+            <li>{{ question.text }}</li>
+        {% empty %}
+            <li>No questions</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'question-add' %}"> Add question</a>
+    <a href="{% url 'research' %}"><button type="button">Back to main page</button></a>
+</body>
+</html>
