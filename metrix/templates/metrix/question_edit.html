@@ -1,0 +1,66 @@
+{% extends "metrix/base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Edit Question</h2>
+
+  <form method="post" id="edit-question-form">
+      <div id="char-count" class="text-danger mt-1" style="display:none;">
+        Maksymalna długość to 255 znaków!
+      </div>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="{{ form.text.id_for_label }}" class="form-label">Text</label>
+      {{ form.text }}
+    </div>
+    <button type="submit" id="save-btn" class="btn btn-primary">Save Changes</button>
+    <a href="{% url 'question_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+
+<style>
+  textarea {
+    height: 1.5em;
+    overflow: hidden;
+    resize: none;
+    width: 100%;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.querySelector('textarea');
+    const charCountDiv = document.getElementById('char-count');
+    const saveBtn = document.getElementById('save-btn');
+    const maxLength = 255;
+
+    if (textarea) {
+      textarea.style.overflow = 'hidden';
+      textarea.style.resize = 'none';
+
+      const resize = () => {
+        textarea.style.height = '1.5em';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      };
+
+      const validateLength = () => {
+        if (textarea.value.length > maxLength) {
+          charCountDiv.style.display = 'block';
+          saveBtn.disabled = true;
+        } else {
+          charCountDiv.style.display = 'none';
+          saveBtn.disabled = false;
+        }
+      };
+
+      textarea.addEventListener('input', () => {
+        resize();
+        validateLength();
+      });
+
+      // initial check
+      resize();
+      validateLength();
+    }
+  });
+</script>
+{% endblock %}
