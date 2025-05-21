@@ -42,6 +42,12 @@ class ParticipantForm(forms.ModelForm):
     class Meta:
         model = Participant
         fields = ['name', 'age', 'gender', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows': 3,  # wysokość w linijkach
+                'style': 'resize:vertical; max-height:150px;'
+            }),
+        }
 
 class ResearchQuestionForm(forms.Form):
     question = forms.ModelChoiceField(queryset=Question.objects.all())

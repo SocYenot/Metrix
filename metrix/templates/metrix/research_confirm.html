@@ -1,30 +1,45 @@
+{% extends 'metrix/base.html' %}
 {% block content %}
-  <h2>Confirm your research</h2>
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title mb-4">Confirm Your Research</h2>
 
-  <h3>Research details</h3>
-  <p>Name: {{ research.name }}</p>
-  <p>Persons: {{ research.person_count }}</p>
-  <p>Questions: {{ research.question_count }}</p>
+      <h4>Research Details</h4>
+      <p><strong>Name:</strong> {{ research.name }}</p>
+      <p><strong>Participants:</strong> {{ research.person_count }}</p>
+      <p><strong>Questions:</strong> {{ research.question_count }}</p>
 
-  <h3>Participants</h3>
-  <ul>
-  {% for p in participants %}
-    <li>{{ p.name }}, age {{ p.age }}, gender {{ p.gender }}</li>
-  {% endfor %}
-  </ul>
+      <hr>
 
-  <h3>Questions:</h3>
-  <ul>
-  {% for q in questions %}
-    <li>{{ q.question_text }} — Min. choices: {{ q.choice_count }}</li>
-  {% endfor %}
-  </ul>
+      <h4>Participants</h4>
+      <ul class="list-group mb-4">
+        {% for p in participants %}
+          <li class="list-group-item">{{ p.name }}, age {{ p.age }}, gender {{ p.gender }}</li>
+        {% endfor %}
+      </ul>
 
+      <h4>Questions</h4>
+      <ul class="list-group mb-4">
+        {% for q in questions %}
+          <li class="list-group-item">
+            {{ q.question_text }} — Min. choices: {{ q.choice_count }}
+          </li>
+        {% endfor %}
+      </ul>
 
-  <form method="post">{% csrf_token %}
-    <button type="submit">Confirm and save</button>
-  </form>
+      <form method="post" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      {% csrf_token %}
 
-  <a href="{% url 'add-research-questions' %}"><button type="button">← Back to questions</button></a>
-    <a href="{% url 'cancel-research' %}">Cancel</a>
+      <a href="{% url 'cancel-research' %}" class="btn btn-danger">Cancel</a>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'add-research-questions' %}" class="btn btn-secondary">Back to Questions</a>
+        <button type="submit" class="btn btn-success">Confirm and Save</button>
+      </div>
+      </form>
+
+    </div>
+  </div>
+</div>
 {% endblock %}

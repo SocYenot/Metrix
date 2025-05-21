@@ -20,6 +20,8 @@ from metrix.forms import CustomUserCreationForm, AddQuestionForm
 
 # Create your views here.
 def index(request):
+    if request.user.is_authenticated:
+        return redirect('research')
     return render(request, 'metrix/index.html')
 
 class SignUpView(CreateView):
@@ -58,6 +60,7 @@ def cancel_research_creation(request):
     return redirect('research')
 class LogoutView(auth_views.LogoutView):
     next_page = reverse_lazy('index')
+
 
 class AddQuestionView(LoginRequiredMixin, FormView):
     template_name = 'metrix/add_question.html'

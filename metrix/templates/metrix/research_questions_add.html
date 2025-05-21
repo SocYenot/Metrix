@@ -1,23 +1,34 @@
+{% extends 'metrix/base.html' %}
 {% block content %}
-  <h2>Assign questions to research: "{{ research.name }}"</h2>
-    {% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
-  <form method="post">
+  <h2 style="text-align: center;">Assign questions to research: "{{ research.name }}"</h2>
+
+  {% if messages %}
+    <ul class="messages" style="max-width: 600px; margin: 0 auto;">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post" style="max-width: 800px; margin: 0 auto;">
     {% csrf_token %}
     {{ formset.management_form }}
+
     {% for form in formset %}
-      <fieldset>
-        <legend>Question {{ forloop.counter }}</legend>
+      <fieldset style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9;">
+        <legend style="font-weight: bold; text-align: center;">Question {{ forloop.counter }}</legend>
         {{ form.as_p }}
       </fieldset>
     {% endfor %}
-    <button type="submit">Finish</button>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <a href="{% url 'cancel-research' %}" class="btn btn-danger">Cancel</a>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'add-participants' %}" class="btn btn-secondary">Back to participants</a>
+        <button type="submit" class="btn btn-primary">Finish</button>
+      </div>
+    </div>
+
   </form>
-    <a href="{% url 'add-participants' %}"><button type="button">← Back to participants</button></a>
-    <a href="{% url 'cancel-research' %}">Cancel</a>
 {% endblock %}
