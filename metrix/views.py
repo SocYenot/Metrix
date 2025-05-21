@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth import views as auth_views, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import FormView, DeleteView
+from django.views.generic.edit import FormView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 from django.views.generic import CreateView, TemplateView
 from django.views.generic.detail import DetailView
@@ -73,6 +73,17 @@ class QuestionListView(LoginRequiredMixin, ListView):
     template_name = 'metrix/question_list.html'
     context_object_name = 'questions'
     ordering = ['-created_at']
+
+class QuestionUpdateView(LoginRequiredMixin, UpdateView):
+    model = Question
+    fields = ['text']
+    template_name = 'metrix/question_edit.html'
+    success_url = reverse_lazy('question_list')
+
+class QuestionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Question
+    template_name = 'metrix/question_confirm_delete.html'
+    success_url = reverse_lazy('question_list')
 
 class ResearchDeleteView(LoginRequiredMixin, DeleteView):
     model = Research

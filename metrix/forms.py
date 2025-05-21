@@ -20,8 +20,18 @@ class AddQuestionForm(forms.ModelForm):
         model = Question
         fields = ['text']
         widgets = {
-            'text': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Wpisz treść pytania...'}),
+            'text': forms.Textarea(attrs={
+                'maxlength': '255',  # frontend validation
+                'rows': 1,
+                'placeholder': 'Enter question text (max 255 chars)',
+            }),
         }
+
+    def clean_text(self):
+        text = self.cleaned_data['text']
+        if len(text) > 255:
+            raise forms.ValidationError("Question text cannot exceed 255 characters.")
+        return text
 
 class ResearchCreateForm(forms.ModelForm):
     class Meta:

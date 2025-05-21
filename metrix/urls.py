@@ -2,7 +2,7 @@ from django.urls import path
 from .views import index, SignUpView, LoginView, research, LogoutView, \
     QuestionListView, AddQuestionView, ResearchCreateView, \
     ParticipantAddView, ResearchQuestionAddView, ResearchDetailView, ResearchConfirmView, \
-    cancel_research_creation, ResearchDeleteView
+    cancel_research_creation, ResearchDeleteView, QuestionUpdateView, QuestionDeleteView
 
 
 
@@ -15,6 +15,8 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
     path('questions/', QuestionListView.as_view(), name='question_list'),
     path('questions/add/', AddQuestionView.as_view(), name='question-add'),
+    path('questions/<int:pk>/edit/', QuestionUpdateView.as_view(), name='question-edit'),
+    path('questions/<int:pk>/delete/', QuestionDeleteView.as_view(), name='question-delete'),
     path('research/add/', ResearchCreateView.as_view(), name='add-research'),
     path('research/<int:research_id>/delete/', ResearchDeleteView.as_view(), name='delete-research'),
     path('research/add/participants/', ParticipantAddView.as_view(), name='add-participants'),

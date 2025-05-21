@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.conf import settings
 
@@ -15,7 +16,7 @@ class CustomUser(AbstractUser):
 
 class Question(models.Model):
     question_id = models.AutoField(primary_key=True)
-    text = models.TextField()
+    text = models.TextField(validators=[MaxLengthValidator(255)])
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,18 +1,34 @@
-<html>
-<head>
-    <title>Question list</title>
-</head>
-<body>
-    <h1>Question list</h1>
-    <ul>
-        {% for question in questions %}
-            <li>{{ question.text }}</li>
-        {% empty %}
-            <li>No questions</li>
-        {% endfor %}
-    </ul>
+{% extends "metrix/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Question List</h2>
 
-    <a href="{% url 'question-add' %}"> Add question</a>
-    <a href="{% url 'research' %}"><button type="button">Back to main page</button></a>
-</body>
-</html>
+    {% if questions %}
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Text</th>
+                    <th style="width: 160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in questions %}
+                    <tr>
+                        <td>{{ question.text }}</td>
+                        <td>
+                            <a href="{% url 'question-edit' question.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                            <a href="{% url 'question-delete' question.pk %}" class="btn btn-sm btn-danger"
+                               onclick="return confirm('Are you sure you want to delete this question?');">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No questions available.</div>
+    {% endif %}
+
+    <a href="{% url 'question-add' %}" class="btn btn-success me-2">Add Question</a>
+    <a href="{% url 'research' %}" class="btn btn-secondary">Back to Main Page</a>
+</div>
+{% endblock %}
