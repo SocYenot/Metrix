@@ -2,7 +2,8 @@ from django.urls import path
 from .views import index, SignUpView, LoginView, research, LogoutView, \
     QuestionListView, AddQuestionView, ResearchCreateView, \
     ParticipantAddView, ResearchQuestionAddView, ResearchDetailView, ResearchConfirmView, \
-    cancel_research_creation, ResearchDeleteView, QuestionUpdateView, QuestionDeleteView
+    cancel_research_creation, ResearchDeleteView, QuestionUpdateView, QuestionDeleteView, \
+    ConductTestView, test_redirect, TestCompletedView
 
 
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path('research/<int:research_id>/', ResearchDetailView.as_view(), name='research-detail'),
     path('research/confirm/', ResearchConfirmView.as_view(), name='research-confirm'),
     path('research/cancel/', cancel_research_creation, name='cancel-research'),
-
-
+    path('research/<int:pk>/test/', test_redirect),
+    path('research/<int:pk>/test/<int:step>/', ConductTestView.as_view(), name='conduct-test'),
+path('research/<int:pk>/test/completed/', TestCompletedView.as_view(), name='test-completed'),
 ]

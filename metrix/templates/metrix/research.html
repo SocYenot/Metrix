@@ -2,7 +2,7 @@
 {% block content %}
   <h1 class="mb-4">Dashboard</h1>
 
-  <a href="{% url 'add-research' %}" class="btn btn-primary mb-3">Create New Research</a>
+  <a href="{% url 'add-research' %}" class="btn btn-primary mb-3">Create new project</a>
 
   {% if page_obj %}
     <div class="table-responsive">
@@ -24,8 +24,9 @@
               <td>{{ research.person_count }}</td>
               <td>{{ research.question_count }}</td>
               <td>
-                <a href="{% url 'research-detail' research.research_id %}" class="btn btn-sm btn-info">View</a>
-                <a href="{% url 'delete-research' research.research_id %}" class="btn btn-sm btn-danger">Delete</a>
+                <a href="{% url 'conduct-test' pk=research.research_id step=0 %}" class="btn btn-sm btn-primary">Conduct Test</a>
+                <a href="{% url 'research-detail' research.research_id %}" class="btn btn-sm btn-dark">View</a>
+                <a href="{% url 'delete-research' research.research_id %}" class="btn btn-sm btn-outline-danger">Delete</a>
               </td>
             </tr>
           {% endfor %}

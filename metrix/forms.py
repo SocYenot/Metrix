@@ -60,3 +60,25 @@ class ResearchQuestionForm(forms.Form):
             self.fields['choice_count'].max_value = max_choices
             self.fields['choice_count'].widget.attrs['max'] = max_choices
 
+class ConductTestForm(forms.Form):
+    def __init__(self, *args, participant=None, questions=None, choices_queryset=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        for question in questions:
+            field_name = f"question_{question.id}"
+            self.fields[field_name] = forms.ModelMultipleChoiceField(
+                label=question.question.text,
+                queryset=choices_queryset.exclude(pk=participant.pk),  # <- tu zmiana
+                widget=forms.CheckboxSelectMultiple,
+                required=True
+            )
+            self.fields[field_name].max_choices = question.choice_count
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for name, field in self.fields.items():
+            if hasattr(field, 'max_choices'):
+                selected = cleaned_data.get(name, [])
+                if len(selected) > field.max_choices:
+                    self.add_error(name, f"You can select up to {field.max_choices} options.")
+        return cleaned_data

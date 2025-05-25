@@ -1,27 +1,101 @@
 {% extends "metrix/base.html" %}
 {% block content %}
-  <h2>Research: {{ research.name }}</h2>
-  <p><strong>Created by:</strong> {{ research.owner }}</p>
-  <p><strong>People required:</strong> {{ research.person_count }}</p>
-  <p><strong>Created:</strong> {{ research.created_at }}</p>
-  <p><strong>Last updated:</strong> {{ research.updated_at }}</p>
 
-  <h3>Participants</h3>
-  <ul>
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <!-- Lewa kolumna: info o badaniu -->
+      <h2>Project: {{ research.name }}</h2>
+      <p><strong>Created by:</strong> {{ research.owner }}</p>
+      <p><strong>People required:</strong> {{ research.person_count }}</p>
+      <p><strong>Created:</strong> {{ research.created_at }}</p>
+      <p><strong>Last updated:</strong> {{ research.updated_at }}</p>
+
+      <h3>Participants</h3>
+<table class="table table-bordered table-striped align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Name</th>
+      <th>Age</th>
+      <th>Gender</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for p in participants %}
-      <li>{{ p.name }} – {{ p.age }} years old – {{ p.gender }}<br><small>{{ p.description }}</small></li>
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.age }}</td>
+        <td>{{ p.gender }}</td>
+        <td>{{ p.description }}</td>
+      </tr>
     {% empty %}
-      <li>No participants.</li>
+      <tr>
+        <td colspan="4" class="text-center">No participants.</td>
+      </tr>
     {% endfor %}
-  </ul>
+  </tbody>
+</table>
 
-  <h3>Questions</h3>
-  <ul>
+<h3>Questions</h3>
+<table class="table table-bordered table-striped align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Question</th>
+      <th>Minimum Choices</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for q in questions %}
-      <li>{{ q.question.text }} <strong>(Min choices: {{ q.choice_count }})</strong></li>
+      <tr>
+        <td>{{ q.question.text }}</td>
+        <td>{{ q.choice_count }}</td>
+      </tr>
     {% empty %}
-      <li>No questions assigned.</li>
+      <tr>
+        <td colspan="2" class="text-center">No questions assigned.</td>
+      </tr>
     {% endfor %}
-  </ul>
-    <a href="{% url 'research' %}" class="btn btn-secondary">Back to Main Page</a>
+  </tbody>
+</table>
+
+    </div>
+
+    <div class="col-md-8">
+      <!-- Prawa kolumna: socjomacierze -->
+      <h2>Results</h2>
+      <h3>Sociomatrix</h3>
+      {% for matrix in matrices %}
+        <div class="mb-5">
+          <h4 class="mb-3">{{ matrix.question }}</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">From \ To</th>
+                  {% for p in participants %}
+                    <th scope="col">{{ p.name }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in matrix.data %}
+                  <tr>
+                    <th scope="row">{{ row.source }}</th>
+                    {% for cell in row.row %}
+                      <td class="{% if cell %}table-success fw-bold{% else %}text-muted{% endif %}">
+                        {% if cell %}+{% else %}&nbsp;{% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<a href="{% url 'research' %}" class="btn btn-secondary">Back to Main Page</a>
 {% endblock %}

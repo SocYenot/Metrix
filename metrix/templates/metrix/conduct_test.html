@@ -1,0 +1,18 @@
+{% extends "metrix/base.html" %}
+
+{% block content %}
+  <h2>{{ participant.name }}'s Turn</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <fieldset>
+        <legend>{{ field.label }}</legend>
+        {{ field }}
+        {% if field.errors %}
+          <div class="error" style="color:red;">{{ field.errors }}</div>
+        {% endif %}
+      </fieldset>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+  </form>
+{% endblock %}

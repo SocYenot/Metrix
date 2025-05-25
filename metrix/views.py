@@ -1,5 +1,7 @@
+from collections import defaultdict
+
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.auth import views as auth_views, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -12,8 +14,10 @@ from django.views import View
 from django.contrib import messages
 from django.forms import formset_factory
 
+
+
 from .models import *
-from .forms import ResearchCreateForm, ParticipantForm, ResearchQuestionForm
+from .forms import ResearchCreateForm, ParticipantForm, ResearchQuestionForm, ConductTestForm
 
 from metrix.forms import CustomUserCreationForm, AddQuestionForm
 
@@ -239,8 +243,30 @@ class ResearchDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         research = self.get_object()
-        context['participants'] = Participant.objects.filter(research=research)
-        context['questions'] = ResearchQuestion.objects.filter(research=research)
+
+        participants = Participant.objects.filter(research=research)
+        responses = Response.objects.filter(research=research).select_related('source', 'target', 'question')
+        questions = ResearchQuestion.objects.filter(research=research).select_related('question')
+
+        matrices = []
+        for rq in questions:
+            matrix = {
+                'question': rq.question.text,
+                'data': []  # lista wierszy: [source, [+, , +, ...]]
+            }
+
+            for source in participants:
+                row = []
+                for target in participants:
+                    match = responses.filter(question=rq.question, source=source, target=target).exists()
+                    row.append(match)
+                matrix['data'].append({'source': source.name, 'row': row})
+            matrices.append(matrix)
+
+        context['questions'] = list(ResearchQuestion.objects.filter(research=research))
+
+        context['participants'] = participants
+        context['matrices'] = matrices
         return context
 
 class ResearchConfirmView(LoginRequiredMixin, TemplateView):
@@ -295,9 +321,84 @@ class ResearchConfirmView(LoginRequiredMixin, TemplateView):
                 choice_count=qdata['choice_count']
             )
 
-        # Czyscimy sesję
         for key in ['research_data', 'participants_data', 'questions_data']:
             if key in request.session:
                 del request.session[key]
 
         return redirect('/research/')
+
+def test_redirect(request, pk):
+    return redirect('conduct-test', pk=pk, step=0)
+class ConductTestView(View):
+    def get(self, request, pk, step=0):
+        research = get_object_or_404(Research, pk=pk)
+        participants_qs = research.participant_set.all()
+        participants = list(participants_qs)
+
+        if step >= len(participants):
+            return redirect('test-completed', pk=pk)
+
+        current_participant = participants[step]
+        questions = ResearchQuestion.objects.filter(research=research)
+
+
+        form = ConductTestForm(
+            participant=current_participant,
+            questions=questions,
+            choices_queryset=participants_qs
+        )
+
+        return render(request, 'metrix/conduct_test.html', {
+            'form': form,
+            'participant': current_participant,
+            'step': step,
+            'total': len(participants),
+            'research': research,
+            'questions': questions,
+            'participants': participants
+        })
+
+    def post(self, request, pk, step=0):
+        research = get_object_or_404(Research, pk=pk)
+        participants_qs = research.participant_set.all()
+        participants = list(participants_qs)
+
+        if step >= len(participants):
+            return redirect('test-completed', pk=pk)
+
+        current_participant = participants[step]
+        questions = ResearchQuestion.objects.filter(research=research)
+
+
+        form = ConductTestForm(
+            request.POST,
+            participant=current_participant,
+            questions=questions,
+            choices_queryset=participants_qs
+        )
+
+        if form.is_valid():
+            for question in questions:
+                selected_targets = form.cleaned_data.get(f"question_{question.id}", [])
+                for target in selected_targets:
+                    Response.objects.create(
+                        research=research,
+                        question=question.question,
+                        source=current_participant,
+                        target=target
+                    )
+            return redirect('conduct-test', pk=pk, step=step + 1)
+
+        return render(request, 'metrix/conduct_test.html', {
+            'form': form,
+            'participant': current_participant,
+            'step': step,
+            'total': len(participants),
+            'research': research,
+            'questions': questions,
+            'participants': participants
+        })
+
+
+class TestCompletedView(TemplateView):
+    template_name = 'metrix/test_completed.html'

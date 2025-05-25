@@ -58,3 +58,12 @@ class Participant(models.Model):
 
     def __str__(self):
         return f"{self.name} (Research: {self.research.name})"
+
+class Response(models.Model):
+    research = models.ForeignKey('Research', on_delete=models.CASCADE, related_name='questions')
+    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    source = models.ForeignKey('Participant', on_delete=models.CASCADE, related_name='responses_given')
+    target = models.ForeignKey('Participant', on_delete=models.CASCADE, related_name='responses_received')
+
+    def __str__(self):
+        return f"{self.source} → {self.target} ({self.question})"
