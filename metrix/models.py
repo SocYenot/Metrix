@@ -30,6 +30,7 @@ class Research(models.Model):
     question_count = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} (Owner: {self.owner})"

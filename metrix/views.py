@@ -1,4 +1,5 @@
 from collections import defaultdict
+from itertools import combinations
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -251,8 +252,9 @@ class ResearchDetailView(LoginRequiredMixin, DetailView):
         matrices = []
         for rq in questions:
             matrix = {
-                'question': rq.question.text,
-                'data': []  # lista wierszy: [source, [+, , +, ...]]
+                'rq': rq,
+                'question': rq.question,
+                'data': []
             }
 
             for source in participants:
@@ -263,10 +265,164 @@ class ResearchDetailView(LoginRequiredMixin, DetailView):
                 matrix['data'].append({'source': source.name, 'row': row})
             matrices.append(matrix)
 
-        context['questions'] = list(ResearchQuestion.objects.filter(research=research))
-
+        context['questions'] = list(questions)
         context['participants'] = participants
         context['matrices'] = matrices
+
+        # OGÓLNE RELACJE (niezależnie od pytania)
+        adjacency = defaultdict(set)
+        for r in responses:
+            adjacency[r.source].add(r.target)
+
+        all_participants = list(participants)
+        pairs, chains, stars, cliques = [], [], [], []
+
+        for a in all_participants:
+            for b in adjacency[a]:
+                if a in adjacency[b] and a.pk < b.pk:
+                    pairs.append((a, b))
+
+        for a in all_participants:
+            for b in adjacency[a]:
+                if a not in adjacency[b]:
+                    for c in adjacency[b]:
+                        if b not in adjacency[c] and c != a:
+                            chains.append((a, b, c))
+
+        threshold = len(participants) // 2
+        for p in all_participants:
+            incoming = sum(1 for others in adjacency.values() if p in others)
+            outgoing = len(adjacency[p])
+            if incoming >= threshold and outgoing == 0:
+                stars.append(p)
+
+        for combo in combinations(all_participants, 3):
+            a, b, c = combo
+            if (b in adjacency[a] and c in adjacency[a] and
+                    a in adjacency[b] and c in adjacency[b] and
+                    a in adjacency[c] and b in adjacency[c]):
+                cliques.append(combo)
+
+        network = all(all(p2 in adjacency[p1] or p1 == p2 for p2 in all_participants) for p1 in all_participants)
+
+        context['relations'] = {
+            'pairs': pairs,
+            'chains': chains,
+            'stars': stars,
+            'cliques': cliques,
+            'network': network,
+        }
+
+        # RELACJE I WSKAŹNIKI PER PYTANIE
+        relations_by_question = {}
+        group_metrics_by_question = {}
+        individual_metrics_by_question = {}
+
+        for rq in questions:
+            question = rq.question
+            q_responses = responses.filter(question=question)
+            adjacency = defaultdict(set)
+            incoming_count = defaultdict(int)
+
+            for r in q_responses:
+                adjacency[r.source].add(r.target)
+                incoming_count[r.target] += 1
+
+            all_participants = list(participants)
+            mutual_count = 0
+            unreciprocated_count = 0
+
+            # Pary
+            pairs = []
+            for a in all_participants:
+                for b in adjacency[a]:
+                    if a in adjacency[b] and a.pk < b.pk:
+                        pairs.append((a, b))
+                        mutual_count += 1
+
+            # Łańcuchy
+            chains = []
+            for a in all_participants:
+                for b in adjacency[a]:
+                    if a not in adjacency[b]:
+                        for c in adjacency[b]:
+                            if b not in adjacency[c] and c != a:
+                                chains.append((a, b, c))
+
+            # Gwiazdy
+            stars = []
+            threshold = len(participants) // 2
+            for p in all_participants:
+                incoming = sum(1 for others in adjacency.values() if p in others)
+                outgoing = len(adjacency[p])
+                if incoming >= threshold and outgoing == 0:
+                    stars.append(p)
+
+            # Kliki
+            cliques = []
+            for combo in combinations(all_participants, 3):
+                a, b, c = combo
+                if (b in adjacency[a] and c in adjacency[a] and
+                        a in adjacency[b] and c in adjacency[b] and
+                        a in adjacency[c] and b in adjacency[c]):
+                    cliques.append(combo)
+
+            # Sieć
+            network = all(all(p2 in adjacency[p1] or p1 == p2 for p2 in all_participants) for p1 in all_participants)
+
+            # **Tutaj klucze na question.pk zamiast question**
+            relations_by_question[question.pk] = {
+                'pairs': pairs,
+                'chains': chains,
+                'stars': stars,
+                'cliques': cliques,
+                'network': network,
+            }
+
+            # 🧮 Wskaźniki grupowe
+            required_choices = rq.choice_count or 1  # zabezpieczenie
+            participant_count = len(participants)
+            max_mutual_possible = (required_choices * participant_count) / 2
+            cohesion = mutual_count / max_mutual_possible if max_mutual_possible else 0
+
+            for a in all_participants:
+                for b in adjacency[a]:
+                    if a not in adjacency[b]:
+                        unreciprocated_count += 1
+
+            denominator_density = unreciprocated_count * (
+                    1 - (required_choices / (participant_count - 1))) if participant_count > 1 else 0
+            numerator_density = mutual_count * (
+                    1 - (required_choices / (participant_count - 1))) if participant_count > 1 else 0
+
+            if denominator_density > 0:
+                density = numerator_density / denominator_density
+            elif numerator_density > 0:
+                density = float('inf')  # unreciprocated == 0, mutual > 0
+            else:
+                density = 0
+
+            non_isolated = sum(1 for p in participants if incoming_count[p] > 0)
+            isolated = participant_count - non_isolated
+            isolation = (1 / isolated) if isolated > 0 else 0
+
+            group_metrics_by_question[question.pk] = {
+                'cohesion': round(cohesion, 2),
+                'density': round(density, 2) if density != float('inf') else '∞',
+                'isolation': round(isolation, 2)
+            }
+
+            individual_status = {}
+            for p in participants:
+                status = incoming_count[p] / (participant_count - 1) if participant_count > 1 else 0
+                individual_status[p] = round(status, 2)
+
+            individual_metrics_by_question[question.pk] = individual_status
+
+        context['relations_by_question'] = relations_by_question
+        context['group_metrics_by_question'] = group_metrics_by_question
+        context['individual_metrics_by_question'] = individual_metrics_by_question
+
         return context
 
 class ResearchConfirmView(LoginRequiredMixin, TemplateView):
@@ -369,7 +525,6 @@ class ConductTestView(View):
         current_participant = participants[step]
         questions = ResearchQuestion.objects.filter(research=research)
 
-
         form = ConductTestForm(
             request.POST,
             participant=current_participant,
@@ -387,6 +542,12 @@ class ConductTestView(View):
                         source=current_participant,
                         target=target
                     )
+
+            # 👇 Dopiero po zapisaniu ostatniego uczestnika ustawiamy is_completed
+            if step + 1 >= len(participants):
+                research.is_completed = True
+                research.save()
+
             return redirect('conduct-test', pk=pk, step=step + 1)
 
         return render(request, 'metrix/conduct_test.html', {

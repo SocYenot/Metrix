@@ -10,10 +10,12 @@
         <thead class="table-dark">
           <tr>
             <th>Name</th>
-            <th>Created At</th>
+            <th>Created at</th>
             <th>Participants</th>
             <th>Questions</th>
-            <th>Actions</th>
+            <th class="text-nowrap text-center" style="width: 1%;">Test</th>
+            <th class="text-nowrap text-center" style="width: 1%;">Info</th>
+            <th class="text-nowrap text-center" style="width: 1%;">Other actions</th>
           </tr>
         </thead>
         <tbody>
@@ -23,10 +25,22 @@
               <td>{{ research.created_at|date:"Y-m-d" }}</td>
               <td>{{ research.person_count }}</td>
               <td>{{ research.question_count }}</td>
-              <td>
-                <a href="{% url 'conduct-test' pk=research.research_id step=0 %}" class="btn btn-sm btn-primary">Conduct Test</a>
-                <a href="{% url 'research-detail' research.research_id %}" class="btn btn-sm btn-dark">View</a>
-                <a href="{% url 'delete-research' research.research_id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+              <td class="text-nowrap text-center">
+                {% if research.is_completed %}
+                  <button class="btn btn-sm btn-secondary" disabled>Test completed</button>
+                {% else %}
+                  <a href="{% url 'conduct-test' pk=research.research_id step=0 %}" class="btn btn-sm btn-primary">Conduct test</a>
+                {% endif %}
+              </td>
+                <td class="text-nowrap text-center">
+                 {% if research.is_completed %}
+                  <a href="{% url 'research-detail' research.research_id %}" class="btn btn-sm btn-primary">View results</a>
+                  {% else %}
+                        <a href="{% url 'research-detail' research.research_id %}" class="btn btn-sm btn-dark">View details</a>
+                  {% endif %}
+                </td>
+                 <td class="text-nowrap text-center">
+                    <a href="{% url 'delete-research' research.research_id %}" class="btn btn-sm btn-outline-danger">Delete</a>
               </td>
             </tr>
           {% endfor %}

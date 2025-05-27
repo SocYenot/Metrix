@@ -1,18 +1,52 @@
 {% extends "metrix/base.html" %}
 
 {% block content %}
-  <h2>{{ participant.name }}'s Turn</h2>
-  <form method="post">
+  <h2 class="text-center mb-4">{{ participant.name }}'s turn</h2>
+  <form method="post" class="mx-auto" style="max-width: 700px;">
     {% csrf_token %}
     {% for field in form %}
-      <fieldset>
+      <fieldset class="mb-5 pt-3 text-center">
         <legend>{{ field.label }}</legend>
-        {{ field }}
+        <p class="text-muted">Max. {{ field.field.max_choices }} choice{{ field.field.max_choices|pluralize }}.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          {{ field }}
+        </div>
         {% if field.errors %}
-          <div class="error" style="color:red;">{{ field.errors }}</div>
+          <div class="text-danger mt-2">{{ field.errors }}</div>
         {% endif %}
       </fieldset>
     {% endfor %}
-    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary mt-3 px-5">Submit</button>
+    </div>
   </form>
+
+  <style>
+  /* Powiększone checkboxy i poprawiona odstępy */
+  input[type="checkbox"] {
+    width: 1.1em;
+    height: 1.1em;
+    cursor: pointer;
+  }
+
+  label {
+    cursor: pointer;
+    user-select: none;
+    font-size: 1.25rem;
+  }
+
+  input[type="checkbox"]:focus + label,
+  label:hover {
+    font-weight: 600;
+    color: #0d6efd;
+  }
+
+  div.d-flex > * {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    margin-right: 1.5rem;
+  }
+</style>
+
 {% endblock %}
