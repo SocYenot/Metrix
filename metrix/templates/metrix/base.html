@@ -31,23 +31,26 @@
           {% if not request.resolver_match.url_name == 'index' and user.is_authenticated %}
             <li class="nav-item"><a class="nav-link" href="{% url 'research' %}">Dashboard</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'question_list' %}">Questions</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'participant-manage-list' %}">Participants</a></li>
+
           {% endif %}
         </ul>
-        <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-            <li class="nav-item">
-              <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" class="nav-link btn p-0 m-0 align-baseline" style="background: none; border: none; color: darkgrey; text-decoration: none;">
-                  Logout
-                </button>
-              </form>
-            </li>
-          {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
-          {% endif %}
-        </ul>
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+  {% if user.is_authenticated %}
+    <li class="nav-item d-flex align-items-center">
+      <a class="nav-link me-3" href="{% url 'account' %}">Account</a>
+      <form method="post" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="nav-link btn p-0 m-0 align-baseline" style="background: none; border: none; color: darkgrey; text-decoration: none;">
+          Logout
+        </button>
+      </form>
+    </li>
+  {% else %}
+    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Sign Up</a></li>
+  {% endif %}
+</ul>
       </div>
     </div>
   </nav>

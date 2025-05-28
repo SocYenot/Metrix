@@ -1,0 +1,22 @@
+{% extends "metrix/base.html" %}
+{% block content %}
+<h2 class="mb-4 text-start">Your account</h2>
+
+<div class="container py-4" style="max-width: 600px;">
+  <div class="card shadow-sm">
+    <div class="card-body text-start">
+      <p class="mb-4"><strong>Username:</strong> {{ user.username }}</p>
+      <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+
+      <div class="d-flex justify-content-between pt-3">
+        <a href="{% url 'account-edit' %}" class="btn btn-primary">
+          Edit account
+        </a>
+        <a href="{% url 'account-delete' %}" class="btn btn-danger">
+          Delete account
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

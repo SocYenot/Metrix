@@ -5,38 +5,63 @@
     <div class="card-body">
       <h2 class="card-title mb-4">Confirm your project</h2>
 
-      <h4>Project details</h4>
-      <p><strong>Name:</strong> {{ research.name }}</p>
-      <p><strong>Participants:</strong> {{ research.person_count }}</p>
-      <p><strong>Questions:</strong> {{ research.question_count }}</p>
+      <div class="row">
+        <!-- Project details -->
+        <div class="col-md-6 mb-4">
+          <h4>Project details</h4>
+          <p><strong>Name:</strong> {{ research.name }}</p>
+          <p><strong>Participants:</strong> {{ research.person_count }}</p>
+          <p><strong>Questions:</strong> {{ research.question_count }}</p>
+        </div>
+
+        <!-- Participants in a table -->
+        <div class="col-md-6 mb-4">
+          <h4>Participants</h4>
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th>Name</th>
+                  <th>Age</th>
+                  <th>Gender</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in participants %}
+                  <tr>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.age }}</td>
+                    <td>{{ p.gender }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       <hr>
 
-      <h4>Participants</h4>
-      <ul class="list-group mb-4">
-        {% for p in participants %}
-          <li class="list-group-item">{{ p.name }}, age {{ p.age }}, gender {{ p.gender }}</li>
-        {% endfor %}
-      </ul>
-
-      <h4>Questions</h4>
-      <ul class="list-group mb-4">
-        {% for q in questions %}
-          <li class="list-group-item">
-            {{ q.question_text }} — Min. choices: {{ q.choice_count }}
-          </li>
-        {% endfor %}
-      </ul>
-
-      <form method="post" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-      {% csrf_token %}
-
-      <a href="{% url 'cancel-research' %}" class="btn btn-danger">Cancel</a>
-
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{% url 'add-research-questions' %}" class="btn btn-secondary">Back to Questions</a>
-        <button type="submit" class="btn btn-success">Confirm and Save</button>
+      <!-- Questions -->
+      <div class="mb-4">
+        <h4>Questions</h4>
+        <ul class="list-group">
+          {% for q in questions %}
+            <li class="list-group-item">
+              {{ q.question_text }} — Min. choices: {{ q.choice_count }}
+            </li>
+          {% endfor %}
+        </ul>
       </div>
+
+      <!-- Form buttons -->
+      <form method="post" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        {% csrf_token %}
+        <a href="{% url 'cancel-research' %}" class="btn btn-danger">Cancel</a>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'add-research-questions' %}" class="btn btn-secondary">Back to questions</a>
+          <button type="submit" class="btn btn-success">Confirm and save</button>
+        </div>
       </form>
 
     </div>

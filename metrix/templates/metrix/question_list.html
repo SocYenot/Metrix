@@ -1,7 +1,11 @@
 {% extends "metrix/base.html" %}
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Question List</h2>
+
+    <h2 class="mb-4">Question list</h2>
+
+    <!-- Alert placeholder -->
+    <div id="alert-placeholder"></div>
 
     {% if questions %}
         <table class="table table-bordered table-hover">
@@ -15,11 +19,25 @@
                 {% for question in questions %}
                     <tr>
                         <td>{{ question.text }}</td>
-                        <td>
-                            <a href="{% url 'question-edit' question.pk %}" class="btn btn-sm btn-primary">Edit</a>
-                            <a href="{% url 'question-delete' question.pk %}" class="btn btn-sm btn-danger"
-                               onclick="return confirm('Are you sure you want to delete this question?');">Delete</a>
-                        </td>
+                        <td class="text-center">
+                          <div style="display: flex; justify-content: center; gap: 1.5rem;">
+                            {% if question.pk in used_question_ids %}
+                              <button class="btn btn-sm btn-secondary edit-disabled-btn" type="button"
+                                data-question-id="{{ question.pk }}">
+                                Edit
+                              </button>
+
+                              <button class="btn btn-sm btn-secondary delete-disabled-btn" type="button"
+                                data-question-id="{{ question.pk }}">
+                                Delete
+                              </button>
+                            {% else %}
+                              <a href="{% url 'question-edit' question.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                              <a href="{% url 'question-delete' question.pk %}" class="btn btn-sm btn-danger"
+                                 onclick="return confirm('Are you sure you want to delete this question?');">Delete</a>
+                            {% endif %}
+                              </div>
+                            </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -28,7 +46,41 @@
         <div class="alert alert-info">No questions available.</div>
     {% endif %}
 
-    <a href="{% url 'question-add' %}" class="btn btn-success me-2">Add Question</a>
-    <a href="{% url 'research' %}" class="btn btn-secondary">Back to Main Page</a>
+    <a href="{% url 'question-add' %}" class="btn btn-success me-2">Add question</a>
+    <a href="{% url 'research' %}" class="btn btn-secondary">Back to main page</a>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const alertPlaceholder = document.getElementById('alert-placeholder');
+
+    function showAlert(message, type = 'warning') {
+        alertPlaceholder.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        alertPlaceholder.append(wrapper);
+    }
+
+    // Edit buttons disabled
+    const disabledEditButtons = document.querySelectorAll('.edit-disabled-btn');
+    disabledEditButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            showAlert("You can't edit a question once it's been used in a test");
+        });
+    });
+
+    // Delete buttons disabled
+    const disabledDeleteButtons = document.querySelectorAll('.delete-disabled-btn');
+    disabledDeleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            showAlert("You can't delete a question once it's been used in a test");
+        });
+    });
+});
+</script>
 {% endblock %}

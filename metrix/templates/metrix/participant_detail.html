@@ -1,0 +1,33 @@
+{% extends 'metrix/base.html' %}
+
+{% block content %}
+  <div class="row">
+  <h2>Participant</h2>
+    <!-- Dane uczestnika -->
+    <div class="col-md-6">
+      <h4>Details:</h4>
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Name:</strong> {{ participant.name }}</li>
+        <li class="list-group-item"><strong>Age:</strong> {{ participant.age }}</li>
+        <li class="list-group-item"><strong>Gender:</strong> {{ participant.get_gender_display }}</li>
+        <li class="list-group-item"><strong>Description:</strong><br> {{ participant.description|linebreaks }}</li>
+      </ul>
+    </div>
+
+    <!-- Powiązane badania -->
+    <div class="col-md-6">
+      <h4>Research projects:</h4>
+      {% if researches %}
+        <ul class="list-group">
+          {% for research in researches %}
+            <li class="list-group-item">{{ research.name }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>This participant is not involved in any research.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{% url 'participant-manage-list' %}" class="btn btn-secondary mt-3">Back</a>
+{% endblock %}

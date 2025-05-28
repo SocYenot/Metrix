@@ -4,7 +4,7 @@ from itertools import combinations
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.contrib.auth import views as auth_views, login
+from django.contrib.auth import views as auth_views, login, update_session_auth_hash, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView, DeleteView, UpdateView
 from django.views.generic.list import ListView
@@ -18,7 +18,8 @@ from django.forms import formset_factory
 
 
 from .models import *
-from .forms import ResearchCreateForm, ParticipantForm, ResearchQuestionForm, ConductTestForm
+from .forms import ResearchCreateForm, ParticipantForm, ResearchQuestionForm, ConductTestForm, EmailUpdateForm, \
+    PasswordUpdateForm, UsernameUpdateForm
 
 from metrix.forms import CustomUserCreationForm, AddQuestionForm
 
@@ -46,6 +47,66 @@ class LoginView(auth_views.LoginView):
     template_name = 'metrix/login.html'
 
     success_url = reverse_lazy('research')
+
+class AccountView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'metrix/account.html', {
+            'user': request.user
+        })
+
+
+class AccountEditView(LoginRequiredMixin, View):
+    def get(self, request):
+        email_form = EmailUpdateForm(instance=request.user, prefix='email')
+        username_form = UsernameUpdateForm(instance=request.user, prefix='username')
+        password_form = PasswordUpdateForm(prefix='password')
+        return render(request, 'metrix/account_edit.html', {
+            'email_form': email_form,
+            'username_form': username_form,
+            'password_form': password_form,
+        })
+
+    def post(self, request):
+        email_form = EmailUpdateForm(request.POST, instance=request.user, prefix='email')
+        username_form = UsernameUpdateForm(request.POST, instance=request.user, prefix='username')
+        password_form = PasswordUpdateForm(request.POST, prefix='password')
+
+        if 'email-submit' in request.POST and email_form.is_valid():
+            email_form.save()
+            messages.success(request, "Email updated successfully.")
+            return redirect('account-edit')
+
+        elif 'username-submit' in request.POST and username_form.is_valid():
+            username_form.save()
+            messages.success(request, "Username updated successfully.")
+            return redirect('account-edit')
+
+        elif 'password-submit' in request.POST and password_form.is_valid():
+            new_password = password_form.cleaned_data['password1']
+            user = request.user
+            user.set_password(new_password)
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Password updated successfully.")
+            return redirect('account-edit')
+
+        return render(request, 'metrix/account_edit.html', {
+            'email_form': email_form,
+            'username_form': username_form,
+            'password_form': password_form,
+        })
+
+class AccountDeleteView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'metrix/account_confirm_delete.html')
+
+    def post(self, request):
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been deleted.")
+        return redirect('index')
+
 @login_required
 def research(request):
     researches = Research.objects.filter(owner=request.user).order_by('-created_at')
@@ -81,6 +142,16 @@ class QuestionListView(LoginRequiredMixin, ListView):
     template_name = 'metrix/question_list.html'
     context_object_name = 'questions'
     ordering = ['-created_at']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Pobierz ID pytań używanych w jakimkolwiek ResearchQuestion
+        used_question_ids = ResearchQuestion.objects.values_list('question_id', flat=True).distinct()
+        context['used_question_ids'] = set(used_question_ids)  # set dla szybszego sprawdzania w templatce
+
+        return context
+
 
 class QuestionUpdateView(LoginRequiredMixin, UpdateView):
     model = Question
@@ -349,14 +420,15 @@ class ResearchDetailView(LoginRequiredMixin, DetailView):
                             if b not in adjacency[c] and c != a:
                                 chains.append((a, b, c))
 
-            # Gwiazdy
+            # Gwiazdy – osoby z największą liczbą wskazań (incoming votes)
             stars = []
-            threshold = len(participants) // 2
-            for p in all_participants:
-                incoming = sum(1 for others in adjacency.values() if p in others)
-                outgoing = len(adjacency[p])
-                if incoming >= threshold and outgoing == 0:
-                    stars.append(p)
+            incoming_counts = {p: 0 for p in all_participants}
+            for voters in adjacency.values():
+                for voted in voters:
+                    incoming_counts[voted] += 1
+            if incoming_counts:
+                max_incoming = max(incoming_counts.values())
+                stars = [p for p, count in incoming_counts.items() if count == max_incoming and max_incoming > 0]
 
             # Kliki
             cliques = []
@@ -563,3 +635,26 @@ class ConductTestView(View):
 
 class TestCompletedView(TemplateView):
     template_name = 'metrix/test_completed.html'
+
+def participant_manage_list(request):
+    participants = Participant.objects.all()
+    return render(request, 'metrix/participants_manage.html', {'participants': participants})
+
+def participant_edit(request, pk):
+    participant = get_object_or_404(Participant, pk=pk)
+    if request.method == 'POST':
+        form = ParticipantForm(request.POST, instance=participant)
+        if form.is_valid():
+            form.save()
+            return redirect('participant-manage-list')
+    else:
+        form = ParticipantForm(instance=participant)
+    return render(request, 'metrix/participant_edit.html', {'form': form, 'participant': participant})
+
+def participant_detail(request, pk):
+    participant = get_object_or_404(Participant, pk=pk)
+    researches = [participant.research]
+    return render(request, 'metrix/participant_detail.html', {
+        'participant': participant,
+        'researches': researches
+    })

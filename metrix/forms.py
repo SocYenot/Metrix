@@ -1,8 +1,7 @@
 from django import  forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Question, Research, Participant, ResearchQuestion
-
-from .models import CustomUser
+from django.utils.translation import gettext_lazy as _
+from .models import Question, Research, Participant, CustomUser, ResearchQuestion
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -13,6 +12,44 @@ class CustomUserAuthenticationForm(AuthenticationForm):
     class Meta:
         model = CustomUser
         fields = ['email', 'password']
+
+class EmailUpdateForm(forms.ModelForm):
+    email = forms.EmailField(required=True, help_text='New email address')
+
+    class Meta:
+        model = CustomUser
+        fields = ['email']
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if CustomUser.objects.filter(email=email).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("This email is already in use.")
+        return email
+
+
+class UsernameUpdateForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True, help_text='New username')
+
+    class Meta:
+        model = CustomUser
+        fields = ['username']
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if CustomUser.objects.filter(username=username).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("This username is already taken.")
+        return username
+
+
+class PasswordUpdateForm(forms.Form):
+    password1 = forms.CharField(widget=forms.PasswordInput, label=_("New password"), help_text="Set new password")
+    password2 = forms.CharField(widget=forms.PasswordInput, label=_("Confirm password"), help_text="Repeat new password")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("password1") != cleaned_data.get("password2"):
+            raise forms.ValidationError("Passwords don't match")
+        return cleaned_data
 
 
 class AddQuestionForm(forms.ModelForm):
@@ -59,6 +96,7 @@ class ResearchQuestionForm(forms.Form):
         if max_choices is not None:
             self.fields['choice_count'].max_value = max_choices
             self.fields['choice_count'].widget.attrs['max'] = max_choices
+
 
 class ConductTestForm(forms.Form):
     def __init__(self, *args, participant=None, questions=None, choices_queryset=None, **kwargs):

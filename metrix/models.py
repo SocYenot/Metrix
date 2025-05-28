@@ -58,7 +58,7 @@ class Participant(models.Model):
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.name} (Research: {self.research.name})"
+        return f"{self.name}"
 
 class Response(models.Model):
     research = models.ForeignKey('Research', on_delete=models.CASCADE, related_name='questions')

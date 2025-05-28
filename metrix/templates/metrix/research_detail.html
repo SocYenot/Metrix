@@ -55,10 +55,14 @@
       <h2 class="card-title mb-4">{{ research.name }} project</h2>
       <div class="row">
         <div class="col-md-4">
-          <p><strong>Created by:</strong> {{ research.owner }}</p>
+          <p><strong>Created by:</strong> {{ research.owner.username }}</p>
           <p><strong>People required:</strong> {{ research.person_count }}</p>
           <p><strong>Created:</strong> {{ research.created_at }}</p>
-          <p><strong>Last updated:</strong> {{ research.updated_at }}</p>
+            {% if research.is_completed %}
+          <p><strong>Test conducted:</strong> {{ research.updated_at }}</p>
+            {% else %}
+            <p><strong>Test conducted:</strong> – </p>
+            {% endif %}
         </div>
 
         <div class="col-md-8">
@@ -94,7 +98,7 @@
               <thead class="table-light">
                 <tr>
                   <th>Question</th>
-                  <th>Minimum Choices</th>
+                  <th>Minimum choices</th>
                 </tr>
               </thead>
               <tbody>
@@ -114,9 +118,8 @@
     </div>
   </div>
 
-  <!-- ANALIZA -->
   <h2 class="mb-4">Analysis</h2>
-
+{% if research.is_completed %}
   {% for matrix in matrices %}
   {% with rel=relations_by_question|get_item:matrix.question.pk group=group_metrics_by_question|get_item:matrix.question.pk individual=individual_metrics_by_question|get_item:matrix.question.pk %}
   <div class="card mb-5 shadow-sm">
@@ -156,11 +159,11 @@
         <!-- Right: Structures & Metrics -->
         <div class="col-md-6">
           <!-- Structures -->
-          <div class="mb-4">
-  <h5>Detected Structures</h5>
+          <div class="mb-3">
+  <h5>Detected structures</h5>
   <div class="structures-list">
-    <div>
-      <p><strong>Mutual Pairs ({{ rel.pairs|length }}):</strong></p>
+    <div class="mb-4">
+      <p><strong>Mutual pairs ({{ rel.pairs|length }}):</strong></p>
       {% if rel.pairs %}
         <div class="structure-line">
           {% for a, b in rel.pairs %}
@@ -172,12 +175,18 @@
       {% endif %}
     </div>
 
-    <div>
+    <div class="mb-4">
       <p><strong>Chains ({{ rel.chains|length }}):</strong></p>
       {% if rel.chains %}
-        <div class="structure-line">
-          {% for a, b, c in rel.chains %}
-            <span class="structure-item">{{ a.name }} → {{ b.name }} → {{ c.name }}{% if not forloop.last %} |{% endif %}</span>
+        {% regroup rel.chains by 0 as chains_by_starter %}
+
+        <div class="structures-list">
+          {% for group in chains_by_starter %}
+            <div class="structure-line">
+              {% for chain in group.list %}
+                  <span class="structure-item">{{ chain.0.name }} → {{ chain.1.name }} → {{ chain.2.name }}{% if not forloop.last %} |{% endif %}</span>
+                {% endfor %}
+            </div>
           {% endfor %}
         </div>
       {% else %}
@@ -185,12 +194,12 @@
       {% endif %}
     </div>
 
-    <div>
+    <div class="mb-4">
       <p><strong>Stars ({{ rel.stars|length }}):</strong></p>
       {% if rel.stars %}
         <div class="structure-line">
           {% for p in rel.stars %}
-            <span class="structure-item">{{ p.name }}{% if not forloop.last %} |{% endif %}</span>
+            <span class="structure-item">{{ p.name }}{% if not forloop.last %},{% endif %}</span>
           {% endfor %}
         </div>
       {% else %}
@@ -198,12 +207,12 @@
       {% endif %}
     </div>
 
-    <div>
+    <div class="mb-4">
       <p><strong>Cliques ({{ rel.cliques|length }}):</strong></p>
       {% if rel.cliques %}
         <div class="structure-line">
           {% for a, b, c in rel.cliques %}
-            <span class="structure-item">{{ a.name }}, {{ b.name }}, {{ c.name }}{% if not forloop.last %} |{% endif %}</span>
+            <span class="structure-item">{{ a.name }}, {{ b.name }}, {{ c.name }}{% if not forloop.last %} ,{% endif %}</span>
           {% endfor %}
         </div>
       {% else %}
@@ -217,7 +226,7 @@
 
           <!-- Metrics -->
           <div class="mb-4">
-            <h5>Group Metrics</h5>
+            <h5>Group metrics</h5>
             <table class="table table-sm table-bordered">
               <tr><th>Cohesion</th><td>{{ group.cohesion }}</td></tr>
               <tr><th>Density</th><td>{{ group.density }}</td></tr>
@@ -225,9 +234,8 @@
             </table>
           </div>
 
-          <!-- Individual Positive Status -->
           <div>
-            <h5>Individual Positive Status</h5>
+            <h5>Individual positive status</h5>
             <div class="table-responsive">
               <table class="table table-bordered table-sm text-center individual-status-table">
                 <thead class="table-light">
@@ -254,10 +262,14 @@
   </div>
   {% endwith %}
   {% endfor %}
+{% else %}
+  <div class="alert alert-warning">
+    <strong>Note:</strong> Analysis will be available once the test is completed.
+  </div>
+{% endif %}
 
-  <!-- Przycisk powrotu -->
   <div class="mt-5">
-    <a href="{% url 'research' %}" class="btn btn-secondary btn-lg">Back to Main Page</a>
+    <a href="{% url 'research' %}" class="btn btn-secondary btn-lg">Back to main page</a>
   </div>
 
 </div>

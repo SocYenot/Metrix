@@ -1,0 +1,78 @@
+{% extends "metrix/base.html" %}
+{% load custom_tags %}
+
+{% block content %}
+    <h2 class="mb-4">Edit account</h2>
+<div class="container py-5" style="max-width: 400px;">
+
+
+  <!-- Email Card -->
+  <div class="card mb-4 text-center">
+    <div class="card-body">
+      <h5 class="card-title">Change email</h5>
+      <form method="post" class="d-flex flex-column align-items-center">
+        {% csrf_token %}
+        <div class="mb-3 w-100">
+          {{ email_form.email|add_class:"form-control form-control-sm text-center" }}
+          {% if email_form.email.errors %}
+            <div class="text-danger small mt-1">{{ email_form.email.errors.0 }}</div>
+          {% endif %}
+        </div>
+      <div class="w-100 text-end">
+        <button type="submit" name="email-submit" class="btn btn-outline-primary btn-sm">Update email</button>
+      </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Username Card -->
+  <div class="card mb-4 text-center">
+    <div class="card-body">
+      <h5 class="card-title">Change username</h5>
+      <form method="post" class="d-flex flex-column align-items-center">
+        {% csrf_token %}
+        <div class="mb-3 w-100">
+          {{ username_form.username|add_class:"form-control form-control-sm text-center" }}
+          {% if username_form.username.errors %}
+            <div class="text-danger small mt-1">{{ username_form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+      <div class="w-100 text-end">
+        <button type="submit" name="username-submit" class="btn btn-outline-primary btn-sm">Update username</button>
+      </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Password Card -->
+  <div class="card mb-4 text-center">
+    <div class="card-body">
+      <h5 class="card-title">Change password</h5>
+      <form method="post" class="d-flex flex-column align-items-center">
+        {% csrf_token %}
+        <div class="mb-3 w-100 text-start">
+          <label for="{{ password_form.password1.id_for_label }}" class="form-label small">New password</label>
+          {{ password_form.password1|add_class:"form-control form-control-sm" }}
+          {% if password_form.password1.errors %}
+            <div class="text-danger small mt-1">{{ password_form.password1.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-3 w-100 text-start">
+          <label for="{{ password_form.password2.id_for_label }}" class="form-label small">Confirm password</label>
+          {{ password_form.password2|add_class:"form-control form-control-sm" }}
+          {% if password_form.password2.errors %}
+            <div class="text-danger small mt-1">{{ password_form.password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+      <div class="w-100 text-end">
+        <button type="submit" name="password-submit" class="btn btn-outline-primary btn-sm">Update password</button>
+      </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{% url 'account' %}" class="btn btn-secondary">Back to account</a>
+  </div>
+</div>
+{% endblock %}

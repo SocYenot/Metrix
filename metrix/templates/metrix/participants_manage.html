@@ -1,0 +1,41 @@
+{% extends 'metrix/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Manage participants</h2>
+
+    {% if participants %}
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Description</th>
+                    <th style="width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in participants %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.age }}</td>
+                        <td>{{ p.get_gender_display }}</td>
+                        <td>{{ p.description|truncatewords:10 }}</td>
+                        <td class="text-center">
+                             <div style="display: flex; justify-content: center; gap: 1.5rem;">
+                            <a href="{% url 'participant-detail' p.pk %}" class="btn btn-sm btn-primary">Details</a>
+                            <a href="{% url 'participant-edit' p.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                             </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No participants available.</div>
+    {% endif %}
+
+    <a href="{% url 'research' %}" class="btn btn-secondary">Back to main page</a>
+</div>
+{% endblock %}
